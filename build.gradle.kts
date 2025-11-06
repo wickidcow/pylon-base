@@ -16,21 +16,21 @@ plugins {
 group = "io.github.pylonmc"
 
 repositories {
+    mavenLocal()
     mavenCentral()
+    maven("https://repo.papermc.io/repository/maven-public/") { name = "papermc" }
+    maven("https://repo.xenondevs.xyz/releases") { name = "InvUI" }
+    maven("https://jitpack.io") { name = "JitPack" }
     maven("https://central.sonatype.com/repository/maven-snapshots/")
-    maven("https://repo.papermc.io/repository/maven-public/") {
-        name = "papermc"
-    }
-    maven("https://jitpack.io") {
-        name = "JitPack"
-    }
-    maven("https://repo.xenondevs.xyz/releases")
 }
 
-val coreVersion = project.properties["pylon-core.version"] as String
+val coreVersion = project.findProperty("pylon-core.version") as? String ?: "0.20.0+mc1.21.10"
 
 dependencies {
+    // Paper 1.21.10 API
     compileOnly("io.papermc.paper:paper-api:1.21.10-R0.1-SNAPSHOT")
+
+    // Depend on your updated core fork
     compileOnly("io.github.pylonmc:pylon-core:$coreVersion")
 
     implementation("org.bstats:bstats-bukkit:2.2.1")
@@ -65,11 +65,13 @@ bukkit {
     apiVersion = "1.21"
     depend = listOf("PylonCore")
     load = BukkitPluginDescription.PluginLoadOrder.STARTUP
+    authors = listOf("Pylon team")
 }
 
 tasks.runServer {
+    // Pull your freshly built PylonCore 1.21.10 jar
     downloadPlugins {
-        github("pylonmc", "pylon-core", coreVersion, "pylon-core-$coreVersion.jar")
+        github("wickidcow", "pylon-core", coreVersion, "pylon-core-$coreVersion.jar")
     }
     maxHeapSize = "4G"
     minecraftVersion("1.21.10")
@@ -83,13 +85,11 @@ publishing {
     publications {
         create<MavenPublication>("maven") {
             artifactId = project.name
-
             from(components["java"])
-
             pom {
                 name = project.name
                 description = "The base addon for Pylon."
-                url = "https://github.com/pylonmc/pylon-base"
+                url = "https://github.com/wickidcow/pylon-base"
                 licenses {
                     license {
                         name = "GNU Lesser General Public License Version 3"
@@ -104,9 +104,9 @@ publishing {
                     }
                 }
                 scm {
-                    connection = "scm:git:git://github.com/pylonmc/pylon-base.git"
-                    developerConnection = "scm:git:ssh://github.com:pylonmc/pylon-base.git"
-                    url = "https://github.com/pylonmc/pylon-base"
+                    connection = "scm:git:git://github.com/wickidcow/pylon-base.git"
+                    developerConnection = "scm:git:ssh://github.com:wickidcow/pylon-base.git"
+                    url = "https://github.com/wickidcow/pylon-base"
                 }
             }
         }
@@ -115,7 +115,6 @@ publishing {
 
 signing {
     useInMemoryPgpKeys(System.getenv("SIGNING_KEY"), System.getenv("SIGNING_PASSWORD"))
-
     sign(publishing.publications["maven"])
 }
 
